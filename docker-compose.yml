@@ -1,0 +1,14 @@
+version: '2.2'
+services:
+  blender:
+    cap_add:
+      - ALL
+    logging:
+      driver: "json-file"
+    build:
+      context: ./docker
+    image: ubuntu:18.04-blender
+    environment:
+      - 'env: local'
+    # volumes:
+    #   - ./pipelines.yml:/pipelines.yml
