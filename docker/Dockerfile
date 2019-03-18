@@ -20,10 +20,10 @@ RUN apt-get update && apt-get dist-upgrade -qy && \
     git
 RUN echo "source /etc/profile.d/bash_completion.sh" >> ~/.bashrc
 
-ADD blender-src /blender-src
-WORKDIR /blender-src
+ADD blender-src /build/blender-src
+WORKDIR /build/blender-src
 RUN ./build_files/build_environment/install_deps.sh --show-deps && \
     ./build_files/build_environment/install_deps.sh --with-all --no-confirm --force-boost --force-python --build-llvm --build-osl --force-osl
-RUN make full
+RUN make full BUILD_CMAKE_ARGS=" -D LLVM_CONFIG=/usr/bin/llvm-config-6.0 -D LLVM_LIBPATH=/usr/lib/llvm-6.0/lib -D LLVM_LIBRARY=/usr/lib/x86_64-linux-gnu/libLLVM-6.0.so -D LLVM_ROOT_DIR=/usr/lib/llvm-6.0 -D LLVM_STATIC=OFF -D LLVM_VERSION=6.0"
 
 ENTRYPOINT watch ls /
