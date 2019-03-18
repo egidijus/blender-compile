@@ -2,10 +2,12 @@ export
 
 
 clone:
+	rm -rf docker/blender-src
 	git clone https://git.blender.org/blender.git docker/blender-src
-	$(cd docker/blender-src && git submodule update --init --recursive && git submodule foreach git checkout master && git submodule foreach git pull --rebase origin master)
+	cd docker/blender-src && git submodule update --init --recursive && git submodule foreach git checkout master && git submodule foreach git pull --rebase origin master
 
 build:
+	ls
 	docker-compose build --pull
 
 run:
