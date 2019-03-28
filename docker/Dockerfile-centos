@@ -1,0 +1,45 @@
+FROM ubuntu:18.04
+ENV os=ubuntu:18.04
+ENV TERM=xterm
+ENV maintainer "Egidijus Ligeika"
+ENV DEBIAN_FRONTEND noninteractive
+ADD apt-requirements.txt /apt-requirements.txt
+RUN apt-get update && apt-get dist-upgrade -qy && \
+    dpkg --set-selections < /apt-requirements.txt && \
+    apt-get install -yq \
+    gcc libc6-dev make curl automake \
+    bash-completion \
+    libxml2-utils \
+    locales \
+    lsb-release \
+    build-essential \
+    nvidia-cuda-dev \
+    libgegl-dev \
+    python3 python3-setuptools python3-dev \
+    python3-pycuda \
+    python3-pip \
+    python3.7 \
+    cmake sudo libboost-tools-dev magics++\
+    vim mlocate apt-utils \
+    libjack-jackd2-dev libdcmtk-dev libavcodec-dev libavutil-dev libswscale-dev libavresample-dev libopenraw-dev libsmraw-dev libraw-dev libgif-dev \
+    liblld-6.0-dev llvm-6.0-dev \
+    git && \
+    python3.7 -m pip install --upgrade pip requests numpy && \
+    pip3 install numpy requests && \
+    ln -s /usr/local/lib/python3.7/dist-packages /usr/lib/python3.7/site-packages && \
+    ln -s python3.7
+
+RUN echo "source /etc/profile.d/bash_completion.sh" >> ~/.bashrc
+
+ADD blender-src /build/blender
+RUN cd /build && bash blender/build_files/build_environment/install_deps.sh --with-all --no-confirm && \
+    mkdir -p /build/cmake-make
+
+WORKDIR /build/
+
+# RUN cd /build/cmake-make && \
+#    cmake -j16 -U *SNDFILE* -U *PYTHON* -U *BOOST* -U *Boost* -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES* -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -D WITH_CODEC_SNDFILE=ON -D PYTHON_VERSION=3.7 -D WITH_OPENCOLORIO=ON -D OPENCOLORIO_ROOT_DIR=/opt/lib/ocio -D WITH_OPENIMAGEIO=ON -D OPENIMAGEIO_ROOT_DIR=/opt/lib/oiio -D WITH_CYCLES_OSL=ON -D WITH_LLVM=ON -D LLVM_STATIC=ON -D WITH_STATIC_LIBS=ON -D LLVM_VERSION=6.0 -D OSL_ROOT_DIR=/opt/lib/osl -D WITH_OPENSUBDIV=ON -D OPENSUBDIV_ROOT_DIR=/opt/lib/osd -D WITH_OPENVDB=ON -D WITH_OPENVDB_BLOSC=ON -D OPENVDB_ROOT_DIR=/opt/lib/openvdb -D WITH_OPENCOLLADA=ON -D WITH_CYCLES_EMBREE=ON -D WITH_JACK=ON -D WITH_JACK_DYNLOAD=ON -D WITH_ALEMBIC=ON -D ALEMBIC_ROOT_DIR=/opt/lib/alembic -D WITH_CODEC_FFMPEG=ON -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;swresample;lzma;rt;theora;theoradec;theoraenc;vorbis;vorbisenc;vorbisfile;ogg;xvidcore;vpx;mp3lame;x264;openjp2' ../blender
+
+# RUN cd /build/cmake-make && make -j16
+
+ENTRYPOINT watch ls /

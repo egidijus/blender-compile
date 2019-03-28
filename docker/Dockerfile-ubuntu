@@ -1,0 +1,96 @@
+FROM ubuntu:18.04
+ENV os=ubuntu:18.04
+ENV TERM=xterm
+ENV maintainer "Egidijus Ligeika"
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /root
+
+RUN mkdir -p /build/blender
+ADD apt-requirements.txt /apt-requirements.txt
+    # dpkg --set-selections < /apt-requirements.txt && \
+RUN apt-get update && apt-get dist-upgrade -qy && \
+    apt-get install -yq \
+    gcc libc6-dev make curl automake \
+    bash-completion \
+    libxml2-utils \
+    locales \
+    lsb-release \
+    build-essential \
+    nvidia-cuda-dev \
+    libgegl-dev \
+    python3 \
+    python3-venv \
+    python3-dev \
+    python3-setuptools \
+    cmake sudo libboost-tools-dev magics++\
+    vim mlocate apt-utils \
+    libjack-jackd2-dev libdcmtk-dev libavcodec-dev libavutil-dev libswscale-dev libavresample-dev libopenraw-dev libsmraw-dev libraw-dev libgif-dev \
+    liblld-6.0-dev llvm-6.0-dev \
+    git && \
+    mkdir -p /root
+
+ADD make-recipes /build/make-recipes
+ADD blender-src /build/blender
+
+WORKDIR /build/
+ENV PYTHON_EXECUTABLE:FILEPATH /root/.pyenv/versions/3.7.2/bin/python3.7
+ENV PYTHON_INCLUDE_CONFIG_DIR:PATH /root/.pyenv/versions/3.67.2/include/python3.7m
+ENV PYTHON_INCLUDE_DIR:PATH /root/.pyenv/versions/3.7.2/include/python3.7m
+ENV PYTHON_LIBPATH:PATH /root/.pyenv/versions/3.7.2/lib
+ENV PYTHON_LIBRARY:FILEPATH /root/.pyenv/versions/3.7.2/lib/libpython3.7m.a
+ENV PYTHON_LINKFLAGS:STRING -Xlinker -export-dynamic
+ENV PYTHON_VERSION:STRING 3.7
+
+ENV PYENV_ROOT $HOME/.pyenv
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+
+RUN curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> /etc/bash.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> /etc/bash.bashrc
+
+RUN pyenv install 3.7.2 && \
+    pyenv virtualenv 3.7.2 venv-blender && \
+    pyenv local venv-blender && \
+    which python && \
+    python -m pip install --upgrade pip requests numpy
+
+
+# RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
+#     python --version && python -m ensurepip --upgrade && python -m pip install --upgrade pip requests numpy && \
+#     ln -s /usr/local/lib/python3.7/dist-packages /usr/lib/python3.7/site-packages
+    
+
+
+RUN echo "source /etc/profile.d/bash_completion.sh" >> ~/.bashrc
+
+RUN cd /build && bash blender/build_files/build_environment/install_deps.sh --with-all --no-confirm && \
+    cd /build/blender && \
+    bash ../make-recipes/01.sh
+
+
+RUN export uid=1000 gid=1000 && \
+    mkdir -p /home/developer && \
+    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
+    echo "developer:x:${uid}:" >> /etc/group && \
+    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer && \
+    chown ${uid}:${gid} -R /home/developer && \
+    chown ${uid}:${gid} -R /build
+
+USER developer
+ENV HOME /home/developer
+
+
+
+# RUN && \
+#     mkdir -p /build/cmake-make
+
+# WORKDIR /build/
+
+# RUN cd /build/cmake-make && \
+#    cmake -j16 -U *SNDFILE* -U *PYTHON* -U *BOOST* -U *Boost* -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES* -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -D WITH_CODEC_SNDFILE=ON -D PYTHON_VERSION=3.7 -D WITH_OPENCOLORIO=ON -D OPENCOLORIO_ROOT_DIR=/opt/lib/ocio -D WITH_OPENIMAGEIO=ON -D OPENIMAGEIO_ROOT_DIR=/opt/lib/oiio -D WITH_CYCLES_OSL=ON -D WITH_LLVM=ON -D LLVM_STATIC=ON -D WITH_STATIC_LIBS=ON -D LLVM_VERSION=6.0 -D OSL_ROOT_DIR=/opt/lib/osl -D WITH_OPENSUBDIV=ON -D OPENSUBDIV_ROOT_DIR=/opt/lib/osd -D WITH_OPENVDB=ON -D WITH_OPENVDB_BLOSC=ON -D OPENVDB_ROOT_DIR=/opt/lib/openvdb -D WITH_OPENCOLLADA=ON -D WITH_CYCLES_EMBREE=ON -D WITH_JACK=ON -D WITH_JACK_DYNLOAD=ON -D WITH_ALEMBIC=ON -D ALEMBIC_ROOT_DIR=/opt/lib/alembic -D WITH_CODEC_FFMPEG=ON -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;swresample;lzma;rt;theora;theoradec;theoraenc;vorbis;vorbisenc;vorbisfile;ogg;xvidcore;vpx;mp3lame;x264;openjp2' ../blender
+
+# RUN cd /build/cmake-make && make -j16
+
+ENTRYPOINT watch ls /

@@ -1,14 +1,37 @@
 version: '2.2'
 services:
-  blender:
+  blender-ubuntu:
     cap_add:
       - ALL
     logging:
       driver: "json-file"
     build:
       context: ./docker
-    image: ubuntu:18.04-blender
+      dockerfile: Dockerfile-ubuntu
+    image: ubuntu_blender
     environment:
       - 'env: local'
-    # volumes:
-    #   - ./pipelines.yml:/pipelines.yml
+
+  blender-arch:
+    cap_add:
+      - ALL
+    logging:
+      driver: "json-file"
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-arch
+    image: arch_blender
+    environment:
+      - 'env: local'
+
+  blender-centos:
+    cap_add:
+      - ALL
+    logging:
+      driver: "json-file"
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-centos
+    image: centos_blender
+    environment:
+      - 'env: local'
