@@ -20,7 +20,7 @@ make clone
 
 Then, build the ubuntu docker image with all the dependencies for blender.
 ```
-make build
+make build_ubuntu
 ```
 
 Then, you should be able to run the container and have the blender compiled:

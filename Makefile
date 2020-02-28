@@ -6,9 +6,14 @@ clone:
 	git clone https://git.blender.org/blender.git docker/blender-src
 	cd docker/blender-src && git submodule update --init --recursive && git submodule foreach git checkout master && git submodule foreach git pull --rebase origin master
 
-build:
-	ls
-	docker-compose build --pull
+build_centos:
+	docker-compose build --pull blender-centos
+
+build_arch:
+	docker-compose build --pull blender-arch
+
+build_ubuntu:
+	docker-compose build  --pull blender-ubuntu
 
 run:
 	docker-compose up
